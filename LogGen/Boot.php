@@ -28,6 +28,8 @@ class Boot
         $output = $this->shell->run($command);
 
         $this->extract($output);
+
+        var_dump($this->logs);
     }
 
 
@@ -40,17 +42,24 @@ class Boot
         foreach ($commits as $commit) {
             #print $commit . "\n";
             list($subject,$body) = explode(self::SEPARATOR,$commit);
-            print "#". $subject . "#\n";
-            print "#". $body . "#\n";
+            $subject = trim($subject);
+            #print "#". $subject . "#\n";
+            #print "#". $body . "#\n";
+            $this->determineGroup($subject);
         }
-
-
-
     }
 
 
     public function determineGroup($subject)
     {
+
+        foreach ($this->groups as $group) {
+            #print $subject;
+            $pattern = "/". $group ."\(.+\):/";
+            if ( preg_match($pattern,$subject) ) {
+                $this->logs[$group][] = $subject;
+            }
+        }
 
     }
 }
