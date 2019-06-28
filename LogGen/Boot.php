@@ -3,6 +3,7 @@
 namespace LogGen;
 
 require 'Shell.php';
+require 'Markdown.php';
 
 
 class Boot
@@ -16,50 +17,69 @@ class Boot
         "refactor",
         "bug"
     ];
+    public $logs = [];
 
-
+    /**
+     * Boot constructor.
+     */
     public function __construct()
     {
         $this->shell = new Shell();
-
-        $format = "'" . "%s" . self::SEPARATOR . "%b" . self::END . "'";
+        $format = "'" . "%s" . self::SEPARATOR . "%b" . self::SEPARATOR . "%h" . self::END . "'";
         $command = "git log 'v2.77.1'...'v2.78.0' --pretty=format:$format --no-merges";
-
         $output = $this->shell->run($command);
-
         $this->extract($output);
-
-        var_dump($this->logs);
+        #print_r($this->logs);
+        new Markdown($this->logs);
     }
 
-
-
+    /**
+     * @param $output
+     */
     public function extract($output)
     {
-
         $commits = explode(self::END, $output);
-
         foreach ($commits as $commit) {
-            #print $commit . "\n";
-            list($subject,$body) = explode(self::SEPARATOR,$commit);
+            list($subject,$body,$hash) = explode(self::SEPARATOR,$commit);
             $subject = trim($subject);
-            #print "#". $subject . "#\n";
-            #print "#". $body . "#\n";
-            $this->determineGroup($subject);
+            $strIssue = $this->findIssue($body);
+            $this->determineGroup($subject,$body,$hash,$strIssue);
         }
     }
 
-
-    public function determineGroup($subject)
+    /**
+     * @param $strSubject
+     * @param $strBody
+     * @param $hash
+     * @param $strIssue
+     */
+    public function determineGroup($strSubject,$strBody,$hash,$strIssue)
     {
-
         foreach ($this->groups as $group) {
-            #print $subject;
-            $pattern = "/". $group ."\(.+\):/";
-            if ( preg_match($pattern,$subject) ) {
-                $this->logs[$group][] = $subject;
+            $pattern = "/". $group ."(\(.+\))?:(.*)/";
+            if ( preg_match($pattern,$strSubject,$arrMatches) ) {
+                $this->logs[$group]['name'] = $group;
+                $this->logs[$group]['commits'][$hash]['hash'] = $hash;
+                $this->logs[$group]['commits'][$hash]['gitSubject'] = $strSubject;
+                $this->logs[$group]['commits'][$hash]['body'] = $strBody;
+                $this->logs[$group]['commits'][$hash]['subject'] = $arrMatches[2];
+                $this->logs[$group]['commits'][$hash]['core'] = $arrMatches[1];
+                $this->logs[$group]['commits'][$hash]['issue'] = $strIssue;
             }
         }
+    }
 
+    /**
+     * @param $string
+     * @return mixed|string
+     */
+    private function findIssue($string)
+    {
+        $issue = "";
+        $pattern = "/#(\d+)/";
+        if ( preg_match($pattern,$string,$arrMatches) ) {
+            $issue = $arrMatches[1] ;
+        }
+        return $issue;
     }
 }

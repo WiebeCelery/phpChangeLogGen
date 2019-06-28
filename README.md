@@ -1,1 +1,3 @@
 # phpChangeLogGen
+
+an changelog generator.
