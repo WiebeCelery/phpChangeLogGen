@@ -2,8 +2,9 @@
 
 namespace LogGen;
 
-require 'Shell.php';
-require 'Markdown.php';
+use LogGen\GetCliOpt ;
+use LogGen\Markdown ;
+use LogGen\Shell;
 
 
 class Boot
@@ -22,15 +23,28 @@ class Boot
     /**
      * Boot constructor.
      */
-    public function __construct()
+    public function __construct($input)
     {
-        $this->shell = new Shell();
-        $format = "'" . "%s" . self::SEPARATOR . "%b" . self::SEPARATOR . "%h" . self::END . "'";
-        $command = "git log 'v2.77.1'...'v2.78.0' --pretty=format:$format --no-merges";
-        $output = $this->shell->run($command);
-        $this->extract($output);
-        #print_r($this->logs);
-        new Markdown($this->logs);
+//        #$this->shell = new Shell();
+//        #$format = "'" . "%s" . self::SEPARATOR . "%b" . self::SEPARATOR . "%h" . self::END . "'";
+//        #$command = "git log 'v2.77.1'...'v2.78.1' --pretty=format:$format --no-merges";
+//        #$output = $this->shell->run($command);
+//        #$this->extract($output);
+//        #print_r($this->logs);
+//
+        $objGetCliOpt = new GetCliOpt();
+
+        if ( $objGetCliOpt->setInput($input) ) {
+            // use input settings
+            $objGetOpt = $objGetCliOpt->parse();
+            $a = $objGetOpt->getOptions();
+            print_r($a);
+        } else {
+            // use default settings (latest release)
+        }
+//
+//        #new Markdown($this->logs);
+
     }
 
     /**

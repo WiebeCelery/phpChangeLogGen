@@ -18,10 +18,10 @@ class Markdown
     {
         foreach ($this->logs as $group) {
             #echo print_r($log);
-            #echo "\n\n";
+            echo "\n";
             echo "#### " . $group['name'] . "\n";
             foreach ($group['commits'] as $commit) {
-                echo $commit['subject'] . "\n";
+                echo "*" . $commit['subject'] . "\n";
                 #print_r($commit);
             }
         }
